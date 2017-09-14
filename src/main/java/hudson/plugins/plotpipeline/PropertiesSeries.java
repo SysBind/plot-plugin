@@ -40,7 +40,8 @@ public class PropertiesSeries extends Series {
      */
     @Override
     public List<PlotPoint> loadSeries(FilePath workspaceRootDir,
-                                      int buildNumber, PrintStream logger) {
+                                      int buildNumber, PrintStream logger,
+				      boolean noExclude) {
         InputStream in = null;
         FilePath[] seriesFiles = null;
 

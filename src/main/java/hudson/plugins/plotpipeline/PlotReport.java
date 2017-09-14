@@ -110,6 +110,7 @@ public class PlotReport {
         }
         CSVReader reader = null;
         try {
+	    LOGGER.log(Level.INFO, "PlotReport: plot file is " + plotFile);
             reader = new CSVReader(new FileReader(plotFile));
             // throw away 2 header lines
             reader.readNext();
@@ -120,6 +121,9 @@ public class PlotReport {
             tableData.add(header);
             String[] nextLine;
             while ((nextLine = reader.readNext()) != null) {
+		LOGGER.log(Level.INFO, "PlotReport: read line : field count = " + nextLine.length);
+		for (int idx = 0; idx < nextLine.length; idx++)
+		    LOGGER.log(Level.INFO, "PlotReport: read line " + idx + " : " + nextLine[idx]);
                 String buildNumber = nextLine[2];
                 if (!plot.reportBuild(Integer.parseInt(buildNumber))) {
                     continue;

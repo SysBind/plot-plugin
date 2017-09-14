@@ -198,7 +198,7 @@ public class XMLSeries extends Series {
      */
     @Override
     public List<PlotPoint> loadSeries(FilePath workspaceRootDir,
-                                      int buildNumber, PrintStream logger) {
+                                      int buildNumber, PrintStream logger, boolean noExclude) {
         InputStream in = null;
         InputSource inputSource = null;
 

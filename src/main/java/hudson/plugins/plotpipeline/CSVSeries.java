@@ -113,7 +113,8 @@ public class CSVSeries extends Series {
      */
     @Override
     public List<PlotPoint> loadSeries(FilePath workspaceRootDir,
-                                      int buildNumber, PrintStream logger) {
+                                      int buildNumber, PrintStream logger,
+				      boolean noExclude) {
         CSVReader reader = null;
         InputStream in = null;
         InputStreamReader inputReader = null;
@@ -189,7 +190,7 @@ public class CSVSeries extends Series {
 
                     // create a new point with the yvalue from the csv file and
                     // url from the URL_index in the properties file.
-                    if (!excludePoint(label, index)) {
+                    if (noExclude || !excludePoint(label, index)) {
                         PlotPoint point = new PlotPoint(yvalue, getUrl(url,
                                 label, index, buildNumber), label);
                         if (LOGGER.isLoggable(defaultLogLevel))

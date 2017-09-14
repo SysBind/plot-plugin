@@ -73,6 +73,11 @@ public class Plot implements Comparable<Plot> {
     private transient List<String[]> rawPlotData;
 
     /**
+       Store all fields (no exclusions)
+     */
+    private transient List<String[]> rawTableData;
+
+    /**
      * The generated plotpipeline, which is only regenerated when new data is added (it
      * is re-rendered, however, every time it is requested).
      */
@@ -302,6 +307,10 @@ public class Plot implements Comparable<Plot> {
             }
         }
         return csvFileName;
+    }
+
+    public String getCsvFileNameNoExclude() {
+        return csvFileName + ".allfields";
     }
 
     /**
@@ -549,14 +558,28 @@ public class Plot implements Comparable<Plot> {
         for (Series series : getSeries()) {
             if (series == null)
                 continue;
-            List<PlotPoint> seriesData = series.loadSeries(
-                    workspace, run.getNumber(), logger);
+            List<PlotPoint> seriesData = series.loadSeries(workspace, run.getNumber(), logger, false);
             if (seriesData != null) {
                 for (PlotPoint point : seriesData) {
                     if (point == null)
                         continue;
 
                     rawPlotData.add(new String[] { point.getYvalue(),
+                            point.getLabel(),
+                            run.getNumber() + "", // convert to a string
+                            run.getTimestamp().getTimeInMillis() + "",
+                            point.getUrl() });
+                }
+            }
+
+	    // load table data
+	    List<PlotPoint> tableData = series.loadSeries(workspace, run.getNumber(), logger, true);
+            if (tableData != null) {
+                for (PlotPoint point : tableData) {
+                    if (point == null)
+                        continue;
+
+                    rawTableData.add(new String[] { point.getYvalue(),
                             point.getLabel(),
                             run.getNumber() + "", // convert to a string
                             run.getTimestamp().getTimeInMillis() + "",
@@ -908,9 +931,13 @@ public class Plot implements Comparable<Plot> {
      */
     private void savePlotData() {
         File plotFile = new File(job.getRootDir(), getCsvFileName());
+	File tableFile = new File(job.getRootDir(), getCsvFileNameNoExclude());
+	
         CSVWriter writer = null;
+	CSVWriter tableWriter = null;
         try {
             writer = new CSVWriter(new OutputStreamWriter( new FileOutputStream(plotFile), "UTF-8"));
+	    tableWriter = new CSVWriter(new OutputStreamWriter( new FileOutputStream(tableFile), "UTF-8"));
             // write 2 header lines
             String[] header1 = new String[] { Messages.Plot_Title(),
                     this.getTitle() };
@@ -919,10 +946,20 @@ public class Plot implements Comparable<Plot> {
                     Messages.Plot_BuildDate(), Messages.Plot_URL() };
             writer.writeNext(header1);
             writer.writeNext(header2);
+
+            tableWriter.writeNext(header1);
+            tableWriter.writeNext(header2);
+	    
             // write each entry of rawPlotData to a new line in the CSV file
             for (String[] entry : rawPlotData) {
                 if (reportBuild(Integer.parseInt(entry[2]))) {
                     writer.writeNext(entry);
+                }
+            }
+            // write each entry of rawTableData to a new line in the Table CSV file
+	    for (String[] entry : rawTableData) {
+                if (reportBuild(Integer.parseInt(entry[2]))) {
+                    tableWriter.writeNext(entry);
                 }
             }
         } catch (IOException ioe) {
